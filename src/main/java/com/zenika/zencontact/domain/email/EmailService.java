@@ -41,8 +41,7 @@ public class EmailService {
             msg.addRecipient(Message.RecipientType.TO,
                 new InternetAddress(email.to, email.toName));
 
-            msg.setReplyTo(new Address[]{
-                new InternetAddress("team@imt-2017-11.appspotmail.com",
+            msg.setReplyTo(new Address[]{new InternetAddress("admin@epsi-20181211-sejuapig.appspotmail.com",
                     "Application team")});
             msg.setSubject(email.subject);
             msg.setText(email.body);
