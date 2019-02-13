@@ -1,17 +1,23 @@
 package com.zenika.zencontact.resource;
 
-import com.zenika.zencontact.domain.User;
-import com.zenika.zencontact.persistence.UserRepository;
-import com.zenika.zencontact.persistence.objectify.UserDaoObjectify;
-import com.google.gson.Gson;
-import com.google.appengine.api.memcache.*;
 import java.io.IOException;
-import java.lang.*;
-import java.util.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.google.appengine.api.memcache.Expiration;
+import com.google.appengine.api.memcache.MemcacheService;
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
+import com.google.gson.Gson;
+import com.zenika.zencontact.domain.User;
+import com.zenika.zencontact.fetch.PartnerBirthdayService;
+import com.zenika.zencontact.persistence.objectify.UserDaoObjectify;
 
 // With @WebServlet annotation the webapp/WEB-INF/web.xml is no longer required.
 @WebServlet(name = "UserResource", value = "/api/v0/users")
@@ -39,6 +45,14 @@ public class UserResource extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
     User user = new Gson().fromJson(request.getReader(), User.class);
+      String birthdate = PartnerBirthdayService.getInstance().findBirthdate(user.firstName, user.lastName);
+      if (birthdate != null) {
+          try {
+              user.birthdate(new SimpleDateFormat("yyyy-MM-dd").parse(birthdate));
+          } catch (ParseException e) {
+              System.out.println(e);
+          }
+      }
     user.id(UserDaoObjectify.getInstance().save(user));
     cache.delete(CONTACTS_CACHE_KEY);
     response.setContentType("application/json; charset=utf-8");
